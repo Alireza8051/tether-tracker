@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tether Smart Scalper</title>
+    <style>
+        :root {
+            --bg-color: #0b0e11;
+            --card-bg: #1e2329;
+            --text-color: #eaecef;
+            --primary-color: #f0b90b; /* Binance Yellow */
+            --success-color: #0ecb81;
+            --danger-color: #f6465d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .price-card {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .label {
+            font-size: 0.9rem;
+            color: #848e9c;
+            margin-bottom: 5px;
+        }
+
+        .price {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+            background-color: var(--danger-color);
+        }
+
+        .status-dot.online {
+            background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        .info-box {
+            font-size: 0.8rem;
+            color: #848e9c;
+            line-height: 1.6;
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ردیاب هوشمند USDT</h1>
+        
+        <div class="price-card">
+            <div class="label">قیمت لحظه‌ای USDT/USDC (Binance)</div>
+            <div id="price-display" class="price">0.00000000</div>
+            <div class="status">
+                <div id="status-dot" class="status-dot"></div>
+                <span id="status-text">در حال اتصال...</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            ارتباط مستقیم با WebSocket بایننس<br>
+            مناسب برای مانیتورینگ سریع و Scalping
+        </div>
+    </div>
+
+    <script>
+        const priceDisplay = document.getElementById('price-display');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        // جفت ارز مورد نظر برای مانیتورینگ (در اینجا قیمت USDT نسبت به USDC یا مشابه)
+        // نکته: در بایننس معمولاً تتر با ارزهای دیگر معامله می‌شود. 
+        // برای نمایش قیمت لحظه‌ای تتر، از جفت ارز USDT/USDC یا جفت ارزهای استیبل کوین استفاده می‌کنیم.
+        const symbol = 'usdtusdc'; 
+
+        function connectWebSocket() {
+            const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@ticker`);
+
+            socket.onopen = () => {
+                statusDot.classList.add('online');
+                statusText.innerText = 'متصل به بازار';
+                console.log('Connected to Binance WebSocket');
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                // 'c' یعنی آخرین قیمت (Last Price)
+                const price = parseFloat(data.c).toFixed(6);
+                priceDisplay.innerText = price;
+                
+                // تغییر رنگ قیمت در صورت حرکت (اختیاری)
+                priceDisplay.style.color = '#0ecb81'; 
+                setTimeout(() => { priceDisplay.style.color = '#eaecef'; }, 300);
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket Error:', error);
+                statusText.innerText = 'خطا در اتصال';
+                statusDot.classList.remove('online');
+            };
+
+            socket.onclose = () => {
+                statusDot.classList.remove('online');
+                statusText.innerText = 'قطع اتصال؛ در حال تلاش مجدد...';
+                // تلاش مجدد برای اتصال پس از ۵ ثانیه
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        // شروع اتصال
+        connectWebSocket();
+    </script>
+</body>
+</html>
+
+
