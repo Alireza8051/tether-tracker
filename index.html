@@ -1,101 +1,20 @@
+
+
+
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tether Tracker</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .card {
-            background: #1e293b;
-            padding: 2rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-        h1 { font-size: 1.5rem; color: #94a3b8; margin-bottom: 1rem; }
-        #price-display {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #38bdf8;
-            margin: 1rem 0;
-        }
-        .status-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #94a3b8;
-        }
-        #status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ef4444;
-        }
-        #status-dot.online { background-color: #22c55e; }
-    </style>
-</head>
+<html>
 <body>
-
-    <div class="card">
-        <h1>قیمت لحظه‌ای تتر (USDT)</h1>
-        <div id="price-display">در حال بارگذاری...</div>
-        <div class="status-container">
-            <div id="status-dot"></div>
-            <span id="status-text">در حال اتصال...</span>
-        </div>
-    </div>
-
+    <h1>تست اتصال</h1>
+    <p id="result">در حال تست...</p>
     <script>
-    const priceDisplay = document.getElementById('price-display');
-    const statusDot = document.getElementById('status-dot');
-    const statusText = document.getElementById('status-text');
-
-    async function fetchPrice() {
-        try {
-            // استفاده از یک پراکسی عمومی برای دور زدن محدودیت CORS
-            // این آدرس درخواست شما را به نوبیتکس می‌فرستد و اجازه دسترسی می‌دهد
-            const proxyUrl = 'https://api.allorigins.win/get?url=';
-            const targetUrl = encodeURIComponent('https://api.nobitex.ir/market/stats?srcCurrency=usdt&destCurrency=rls');
-            
-            const response = await fetch(proxyUrl + targetUrl);
-            
-            if (!response.ok) throw new Error('Network error');
-            
-            const wrapper = await response.json();
-            // داده‌های اصلی نوبیتکس داخل wrapper.contents قرار دارند
-            const data = JSON.parse(wrapper.contents);
-            
-            const priceInRial = data.stats['usdt-rls'].latest;
-            const priceInToman = (parseFloat(priceInRial) / 10).toLocaleString('fa-IR');
-
-            priceDisplay.innerText = priceInToman + " تومان";
-            statusDot.classList.add('online');
-            statusText.innerText = 'متصل به بازار داخلی';
-
-        } catch (err) {
-            console.error('Error:', err);
-            statusText.innerText = 'خطا در اتصال (در حال تلاش...)';
-            statusDot.classList.remove('online');
-        }
-    }
-
-    fetchPrice();
-    setInterval(fetchPrice, 5000);
-</script>
-
+        fetch('https://api.coindesk.com/v1/bpi/currentprice.json')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerText = "اتصال برقرار است! قیمت بیت‌کوین: " + data.bpi.USD.rate;
+            })
+            .catch(err => {
+                document.getElementById('result').innerText = "خطا: مرورگر شما اجازه دسترسی به اینترنت را نمی‌دهد یا فیلتر است.";
+            });
+    </script>
 </body>
 </html>
