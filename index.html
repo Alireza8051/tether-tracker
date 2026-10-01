@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -112,55 +112,40 @@
             مناسب برای مانیتورینگ سریع و Scalping
         </div>
     </div>
+<script>
+    const priceDisplay = document.getElementById('price-display');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
 
-    <script>
-        const priceDisplay = document.getElementById('price-display');
-        const statusDot = document.getElementById('status-dot');
-        const statusText = document.getElementById('status-text');
+    // تابع دریافت قیمت از صرافی ایرانی (نوبیتکس)
+    async function fetchPrice() {
+        try {
+            // آدرس API عمومی نوبیتکس برای تتر به ریال
+            const response = await fetch('https://api.nobitex.ir/market/stats?srcCurrency=usdt&destCurrency=rls');
+            const data = await response.json();
 
-        // جفت ارز مورد نظر برای مانیتورینگ (در اینجا قیمت USDT نسبت به USDC یا مشابه)
-        // نکته: در بایننس معمولاً تتر با ارزهای دیگر معامله می‌شود. 
-        // برای نمایش قیمت لحظه‌ای تتر، از جفت ارز USDT/USDC یا جفت ارزهای استیبل کوین استفاده می‌کنیم.
-        const symbol = 'usdtusdc'; 
+            // در پاسخ نوبیتکس، قیمت در بخش stats['usdt-rls'].latest قرار دارد
+            const price = data.stats['usdt-rls'].latest;
+            
+            // تبدیل قیمت به تومان (اگر به ریال است تقسیم بر ۱۰ کنید) و نمایش
+            const priceInToman = (parseFloat(price) / 10).toLocaleString('fa-IR');
+            
+            priceDisplay.innerText = priceInToman + " تومان";
+            statusDot.classList.add('online');
+            statusText.innerText = 'متصل به بازار داخلی';
 
-        function connectWebSocket() {
-            const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@ticker`);
-
-            socket.onopen = () => {
-                statusDot.classList.add('online');
-                statusText.innerText = 'متصل به بازار';
-                console.log('Connected to Binance WebSocket');
-            };
-
-            socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                // 'c' یعنی آخرین قیمت (Last Price)
-                const price = parseFloat(data.c).toFixed(6);
-                priceDisplay.innerText = price;
-                
-                // تغییر رنگ قیمت در صورت حرکت (اختیاری)
-                priceDisplay.style.color = '#0ecb81'; 
-                setTimeout(() => { priceDisplay.style.color = '#eaecef'; }, 300);
-            };
-
-            socket.onerror = (error) => {
-                console.error('WebSocket Error:', error);
-                statusText.innerText = 'خطا در اتصال';
-                statusDot.classList.remove('online');
-            };
-
-            socket.onclose = () => {
-                statusDot.classList.remove('online');
-                statusText.innerText = 'قطع اتصال؛ در حال تلاش مجدد...';
-                // تلاش مجدد برای اتصال پس از ۵ ثانیه
-                setTimeout(connectWebSocket, 5000);
-            };
+        } catch (err) {
+            console.error('Error:', err);
+            statusText.innerText = 'خطا در اتصال به سرور';
+            statusDot.classList.remove('online');
         }
+    }
 
-        // شروع اتصال
-        connectWebSocket();
-    </script>
+    // هر ۵ ثانیه قیمت را آپدیت کن
+    fetchPrice();
+    setInterval(fetchPrice, 5000); 
+</script>
+
+    
 </body>
 </html>
-
-
