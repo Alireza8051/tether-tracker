@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>تست اتصال</h1>
+    <p id="result">در حال تست...</p>
+    <script>
+        fetch('https://api.coindesk.com/v1/bpi/currentprice.json')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('result').innerText = "اتصال برقرار است! قیمت بیت‌کوین: " + data.bpi.USD.rate;
+            })
+            .catch(err => {
+                document.getElementById('result').innerText = "خطا: مرورگر شما اجازه دسترسی به اینترنت را نمی‌دهد یا فیلتر است.";
+            });
+    </script>
+</body>
+</html>
